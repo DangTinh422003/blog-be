@@ -1,9 +1,9 @@
 import express from 'express';
 
+import accessRouter from '@/routes/access.route';
+
 const router = express.Router();
 
-router.get('/test', (req, res) => {
-  res.send('oke');
-});
+router.use('/access', accessRouter);
 
 export default router;

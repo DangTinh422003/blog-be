@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-dotenv.config({ path: ['.env.local', '.env', '.env.example'] });
+dotenv.config({ path: ['.env'] });
 
 interface Config {
   app: {
