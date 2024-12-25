@@ -2,6 +2,7 @@ import express from 'express';
 
 import AccessController from '@/controllers/access.controller';
 import { handleError } from '@/middlewares/handleError';
+import { isAuthenticated } from '@/middlewares/isAuthenticated';
 import AccessValidation from '@/validations/access.validation';
 
 const accessController = new AccessController();
@@ -26,6 +27,7 @@ router.post(
 );
 router.post(
   '/sign-out',
+  isAuthenticated,
   handleError(accessValidation.signOut),
   handleError(accessController.signOut),
 );
@@ -43,6 +45,12 @@ router.post(
   '/verify-reset-password',
   handleError(accessValidation.verifySignUpToken),
   handleError(accessController.verifyResetPassword),
+);
+router.post(
+  '/change-password',
+  isAuthenticated,
+  handleError(accessValidation.changePassword),
+  handleError(accessController.changePassword),
 );
 
 export default router;

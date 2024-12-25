@@ -341,4 +341,21 @@ export default class AccessService {
       throw new InternalServerError();
     }
   }
+
+  async changePassword(email: string, newPassword: string) {
+    const userHolder = await UserRepository.findByEmail(email);
+
+    if (!userHolder) {
+      throw new NotFoundError('User not found');
+    }
+
+    const SALT = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, SALT);
+
+    await UserRepository.updateById(userHolder._id.toString(), {
+      password: hashedPassword,
+    });
+
+    return new OkResponse('Password changed successfully');
+  }
 }

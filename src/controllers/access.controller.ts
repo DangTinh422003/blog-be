@@ -100,4 +100,11 @@ export default class AccessController {
     const token: string = req.body.token;
     res.send(await accessService.verifyResetPasswordToken(token));
   }
+
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    const email: string = req.body.email;
+    const newPassword: string = req.body.newPassword;
+
+    res.send(await accessService.changePassword(email, newPassword));
+  }
 }

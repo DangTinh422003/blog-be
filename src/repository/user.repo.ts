@@ -8,4 +8,8 @@ export class UserRepository {
   static async updateById(userId: string, user: Partial<User>) {
     return await userModel.findByIdAndUpdate(userId, user);
   }
+
+  static async findById(userId: string) {
+    return await userModel.findById(userId).lean();
+  }
 }
