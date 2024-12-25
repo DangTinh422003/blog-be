@@ -96,4 +96,29 @@ export default class AccessValidation {
 
     next();
   }
+
+  changePassword(req: Request, res: Response, next: NextFunction) {
+    const email: string = req.body.email;
+    const newPassword: string = req.body.newPassword;
+    const accessToken: string = req.cookies.accessToken;
+
+    if (!email || !accessToken) {
+      throw new BadRequestError();
+    }
+
+    const resetPasswordSchema = z.object({
+      email: z.string().email().min(1, 'Email is required'),
+      newPassword: z
+        .string()
+        .min(1, 'Password is required')
+        .max(100, 'Password is too long'),
+    });
+
+    const check = resetPasswordSchema.safeParse({ email, newPassword });
+    if (check.error) {
+      throw new BadRequestError();
+    }
+
+    next();
+  }
 }

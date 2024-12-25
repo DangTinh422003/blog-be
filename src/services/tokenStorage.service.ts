@@ -32,4 +32,8 @@ export default class TokenStorageService {
       refreshTokensUsed: refreshToken,
     });
   }
+
+  async findByUserId(userId: string) {
+    return await tokenStorageModel.findOne({ user: userId });
+  }
 }
