@@ -1,3 +1,5 @@
+import { EMAIL_KEYS } from '@/constants/email.constant';
+
 const welcomeTemplate = () => `
   <!doctype html>
 <html lang="en">
@@ -96,12 +98,12 @@ const welcomeTemplate = () => `
         <td class="content">
           <h1>Welcome to DevBlog</h1>
           <p>
-            Hello {{email}}!<br />
+            Hello ${EMAIL_KEYS.EMAIL}!<br />
             Thank you for signing up for DevBlog. We're really happy to have
             you! Click the link below to log in to your account:
           </p>
           <div class="button">
-            <a href="http://localhost:3001/welcome?token={{token}}"
+            <a href="http://localhost:3001/welcome?token=${EMAIL_KEYS.TOKEN}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >Confirm your account!</a
             >
           </div>

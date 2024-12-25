@@ -1,4 +1,4 @@
-import { getReasonPhrase, StatusCodes } from 'http-status-codes';
+import { getReasonPhrase, ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 export class CustomError extends Error {
   status: number;

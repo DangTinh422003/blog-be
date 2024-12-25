@@ -6,7 +6,7 @@ import { BadRequestError } from '@/core/error.response';
 export default class AccessValidation {
   signUp(req: Request, res: Response, next: NextFunction) {
     const signUpSchema = z.object({
-      email: z.string().email().min(1, 'Email is required'),
+      email: z.string().email().min(1, 'Missing Email'),
     });
 
     const check = signUpSchema.safeParse({ email: req.body.email });
@@ -20,10 +20,7 @@ export default class AccessValidation {
   signIn(req: Request, res: Response, next: NextFunction) {
     const signInSchema = z.object({
       email: z.string().email(),
-      password: z
-        .string()
-        .min(1, 'Password is required')
-        .max(100, 'Password is too long'),
+      password: z.string().min(1, 'Password is required').max(100, 'Password is too long, max 100 characters'),
     });
 
     const check = signInSchema.safeParse({
@@ -108,10 +105,7 @@ export default class AccessValidation {
 
     const resetPasswordSchema = z.object({
       email: z.string().email().min(1, 'Email is required'),
-      newPassword: z
-        .string()
-        .min(1, 'Password is required')
-        .max(100, 'Password is too long'),
+      newPassword: z.string().min(1, 'Password is required').max(100, 'Password is too long'),
     });
 
     const check = resetPasswordSchema.safeParse({ email, newPassword });
