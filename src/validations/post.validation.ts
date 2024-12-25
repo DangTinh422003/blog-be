@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { BadRequestError } from '@/core/error.response';
 
 export default class PostValidation {
-  getPosts(req: Request, res: Response, next: NextFunction) {
+  findAllPost(req: Request, res: Response, next: NextFunction) {
     const optionQuerySchema = z.object({
       page: z.coerce.number().int().min(1).optional(),
       limit: z.coerce.number().int().min(1).optional(),
@@ -33,7 +33,15 @@ export default class PostValidation {
     next();
   }
 
-  findPost(req: Request, res: Response, next: NextFunction) {
+  findById(req: Request, res: Response, next: NextFunction) {
+    const id: string = req.params.id;
+    const idSchema = z.string();
+    const idParsed = idSchema.safeParse(id);
+
+    if (!idParsed.success) {
+      throw new BadRequestError('Invalid id');
+    }
+
     next();
   }
 }
