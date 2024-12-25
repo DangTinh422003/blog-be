@@ -39,5 +39,10 @@ router.post(
   handleError(accessValidation.resetPassword),
   handleError(accessController.resetPassword),
 );
+router.post(
+  '/verify-reset-password',
+  handleError(accessValidation.verifySignUpToken),
+  handleError(accessController.verifyResetPassword),
+);
 
 export default router;

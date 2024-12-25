@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { type JwtPayload } from 'jsonwebtoken';
 import type Mail from 'nodemailer/lib/mailer';
 
@@ -15,6 +16,7 @@ import { UserRepository } from '@/repository/user.repo';
 import EmailService from '@/services/email.service';
 import TokenService from '@/services/token.service';
 import TokenStorageService from '@/services/tokenStorage.service';
+import resetPasswordTemplate from '@/templates/resetpassword.template';
 import welcomeTemplate from '@/templates/welcome.template';
 import { isValidEmail } from '@/utils/isValidEmail.util';
 import { removePasswordField } from '@/utils/removePasswordField.util';
@@ -268,6 +270,67 @@ export default class AccessService {
         },
         to: email,
         subject: 'Reset your password, Please verify your email',
+        html: replacedEmailTemplate,
+      };
+
+      await emailService.sendMail(transporter, mailOptions);
+
+      return new OkResponse('Email sent successfully');
+    } catch (error) {
+      throw new InternalServerError();
+    }
+  }
+
+  async verifyResetPasswordToken(token: string) {
+    const decoded: JwtPayload = tokenService.verifyToken(
+      token,
+      process.env.RESET_PASSWORD_TOKEN_PRIVATE_KEY!,
+    );
+
+    const email: string = decoded.email;
+    if (!email) throw new BadRequestError('Invalid token');
+
+    const userHolder = await UserRepository.findByEmail(email);
+    if (!userHolder) {
+      throw new NotFoundError('User not found');
+    }
+
+    const randomPassword = crypto.randomBytes(8).toString('hex');
+
+    const SALT = 10;
+    const hashedPassword = await bcrypt.hash(randomPassword, SALT);
+
+    await UserRepository.updateById(userHolder._id.toString(), {
+      password: hashedPassword,
+    });
+
+    const replacedEmailTemplate = emailService.replacedEmailTemplate(
+      resetPasswordTemplate(),
+      [
+        {
+          key: '{{email}}',
+          value: email,
+        },
+        {
+          key: '{{password}}',
+          value: randomPassword,
+        },
+      ],
+    );
+
+    try {
+      const transporter = emailService.initTransporter('smtp.gmail.com', {
+        user: process.env.EMAIL_SERVICE_AUTH_USER!,
+        pass: process.env.EMAIL_SERVICE_AUTH_PASS!,
+      });
+
+      const mailOptions: Mail.Options = {
+        from: {
+          name: 'Dev Blog',
+          address: process.env.EMAIL_SERVICE_AUTH_USER!,
+        },
+        to: email,
+        subject: 'Reset password successfully',
         html: replacedEmailTemplate,
       };
 

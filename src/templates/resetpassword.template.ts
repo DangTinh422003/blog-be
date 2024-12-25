@@ -1,5 +1,6 @@
-const welcomeTemplate = () => `
-  <!doctype html>
+const resetPasswordTemplate = () => {
+  return `
+    <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -94,16 +95,16 @@ const welcomeTemplate = () => `
     <table class="email-container">
       <tr>
         <td class="content">
-          <h1>Welcome to DevBlog</h1>
+          <h1>Reset Password</h1>
           <p>
             Hello {{email}}!<br />
-            Thank you for signing up for DevBlog. We're really happy to have
-            you! Click the link below to log in to your account:
+            Thank you for using DevBlog. We're really happy to have you! Click
+            the link below to reset your password:
           </p>
           <div class="button">
-            <a href="http://localhost:3001/welcome?token={{token}}"
-              >Confirm your account!</a
-            >
+            <p>
+              New Password : {{password}}
+            </p>
           </div>
         </td>
       </tr>
@@ -111,6 +112,7 @@ const welcomeTemplate = () => `
   </body>
 </html>
 
-`;
+  `;
+};
 
-export default welcomeTemplate;
+export default resetPasswordTemplate;

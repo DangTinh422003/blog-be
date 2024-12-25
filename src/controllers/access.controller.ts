@@ -95,4 +95,9 @@ export default class AccessController {
     const email: string = req.body.email;
     res.send(await accessService.resetPassword(email));
   }
+
+  async verifyResetPassword(req: Request, res: Response, next: NextFunction) {
+    const token: string = req.body.token;
+    res.send(await accessService.verifyResetPasswordToken(token));
+  }
 }
