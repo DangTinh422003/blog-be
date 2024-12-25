@@ -3,6 +3,7 @@ import { type PaginateOptions, Types } from 'mongoose';
 import { BadRequestError, NotFoundError } from '@/core/error.response';
 import { OkResponse } from '@/core/success.response';
 import postModel from '@/models/post.model';
+import PostRepository from '@/repository/post.repo';
 
 type OptionQuery = {
   page: number;
@@ -30,7 +31,20 @@ export class PostService {
     });
   }
 
-  deletePost() {}
+  async deletePost(userId: string, postId: string) {
+    const post = await PostRepository.findById(postId);
+    if (!post) {
+      throw new NotFoundError('Post not found');
+    }
+
+    if (post.author.toString() !== userId) {
+      throw new BadRequestError('Not The Owner');
+    }
+
+    await postModel.findByIdAndDelete(new Types.ObjectId(postId));
+
+    return new OkResponse('Successfully!');
+  }
 
   updatePost() {}
 

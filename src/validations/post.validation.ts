@@ -23,6 +23,15 @@ export default class PostValidation {
   }
 
   deletePost(req: Request, res: Response, next: NextFunction) {
+    const id: string = req.params.id;
+    const idSchema = z.string();
+
+    const idParsed = idSchema.safeParse(id);
+
+    if (idParsed.error || !Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Invalid id');
+    }
+
     next();
   }
 

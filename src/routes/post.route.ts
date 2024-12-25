@@ -1,6 +1,7 @@
 import express from 'express';
 
 import PostController from '@/controllers/post.controller';
+import { asyncHandler } from '@/middlewares/asyncHandler';
 import { isAuthenticated } from '@/middlewares/isAuthenticated';
 import PostValidation from '@/validations/post.validation';
 
@@ -11,10 +12,18 @@ const postValidation = new PostValidation();
 
 router.use(isAuthenticated);
 
-router.get('/find', postValidation.findAllPost, postController.findAllPost);
-router.get('/find/:id', postValidation.findById, postController.findById);
-router.get('/create', postController.createPost);
-router.get('/delete', postController.deletePost);
-router.get('/update', postController.updatePost);
+router.get(
+  '/find',
+  asyncHandler(postValidation.findAllPost),
+  asyncHandler(postController.findAllPost),
+);
+router.get(
+  '/find/:id',
+  asyncHandler(postValidation.findById),
+  asyncHandler(postController.findById),
+);
+router.get('/create', asyncHandler(postController.createPost));
+router.delete('/delete/:id', asyncHandler(postController.deletePost));
+router.patch('/update', asyncHandler(postController.updatePost));
 
 export default router;

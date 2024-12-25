@@ -1,6 +1,7 @@
 import express from 'express';
 
 import AccessController from '@/controllers/access.controller';
+import { asyncHandler } from '@/middlewares/asyncHandler';
 import { isAuthenticated } from '@/middlewares/isAuthenticated';
 import AccessValidation from '@/validations/access.validation';
 
@@ -9,39 +10,47 @@ const accessValidation = new AccessValidation();
 
 const router = express.Router();
 
-router.post('/sign-up', accessValidation.signUp, accessController.signUp);
+router.post(
+  '/sign-up',
+  asyncHandler(accessValidation.signUp),
+  asyncHandler(accessController.signUp),
+);
 router.post(
   '/verify-otp',
-  accessValidation.verifySignUpToken,
-  accessController.verifySignUpToken,
+  asyncHandler(accessValidation.verifySignUpToken),
+  asyncHandler(accessController.verifySignUpToken),
 );
-router.post('/sign-in', accessValidation.signIn, accessController.signIn);
+router.post(
+  '/sign-in',
+  asyncHandler(accessValidation.signIn),
+  asyncHandler(accessController.signIn),
+);
 router.post(
   '/sign-out',
   isAuthenticated,
-  accessValidation.signOut,
-  accessController.signOut,
+  asyncHandler(accessValidation.signOut),
+  asyncHandler(accessController.signOut),
 );
 router.post(
   '/refresh-token',
-  accessValidation.refressToken,
-  accessController.refressToken,
+  asyncHandler(accessValidation.refressToken),
+  asyncHandler(accessController.refressToken),
 );
 router.post(
   '/reset-password',
-  accessValidation.resetPassword,
-  accessController.resetPassword,
+  asyncHandler(accessValidation.resetPassword),
+  asyncHandler(accessController.resetPassword),
 );
 router.post(
   '/verify-reset-password',
-  accessValidation.verifySignUpToken,
-  accessController.verifyResetPassword,
+  asyncHandler(accessValidation.verifySignUpToken),
+  asyncHandler(accessController.verifyResetPassword),
 );
 router.post(
   '/change-password',
   isAuthenticated,
-  accessValidation.changePassword,
-  accessController.changePassword,
+  asyncHandler(accessValidation.changePassword),
+  asyncHandler(accessController.changePassword),
 );
 
 export default router;
