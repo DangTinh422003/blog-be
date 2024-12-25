@@ -10,8 +10,10 @@ export default class PostController {
     res.send(await postService.findAllPost(queryOption));
   }
 
-  findById(req: Request, res: Response, next: NextFunction) {
-    res.send('oke');
+  async findById(req: Request, res: Response, next: NextFunction) {
+    const postId: string = req.params.id;
+
+    res.send(await postService.findPost(postId));
   }
 
   deletePost(req: Request, res: Response, next: NextFunction) {}

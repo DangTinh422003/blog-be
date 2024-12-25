@@ -1,5 +1,6 @@
-import { type PaginateOptions } from 'mongoose';
+import { type PaginateOptions, Types } from 'mongoose';
 
+import { BadRequestError, NotFoundError } from '@/core/error.response';
 import { OkResponse } from '@/core/success.response';
 import postModel from '@/models/post.model';
 
@@ -35,5 +36,18 @@ export class PostService {
 
   createPost() {}
 
-  findPost() {}
+  async findPost(postId: string) {
+    const post = await postModel
+      .findById(new Types.ObjectId(postId))
+      .populate('author')
+      .lean();
+
+    if (!post) {
+      throw new NotFoundError('Post not found');
+    }
+
+    return new OkResponse('Successfully!', {
+      post,
+    });
+  }
 }
