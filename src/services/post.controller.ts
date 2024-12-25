@@ -10,7 +10,7 @@ type OptionQuery = {
 };
 
 export class PostService {
-  async getPosts({
+  async findAllPost({
     page = 1,
     limit = 20,
     order = 'asc',

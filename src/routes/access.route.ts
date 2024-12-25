@@ -1,7 +1,6 @@
 import express from 'express';
 
 import AccessController from '@/controllers/access.controller';
-import { handleError } from '@/middlewares/handleError';
 import { isAuthenticated } from '@/middlewares/isAuthenticated';
 import AccessValidation from '@/validations/access.validation';
 
@@ -10,47 +9,39 @@ const accessValidation = new AccessValidation();
 
 const router = express.Router();
 
-router.post(
-  '/sign-up',
-  handleError(accessValidation.signUp),
-  handleError(accessController.signUp),
-);
+router.post('/sign-up', accessValidation.signUp, accessController.signUp);
 router.post(
   '/verify-otp',
-  handleError(accessValidation.verifySignUpToken),
-  handleError(accessController.verifySignUpToken),
+  accessValidation.verifySignUpToken,
+  accessController.verifySignUpToken,
 );
-router.post(
-  '/sign-in',
-  handleError(accessValidation.signIn),
-  handleError(accessController.signIn),
-);
+router.post('/sign-in', accessValidation.signIn, accessController.signIn);
 router.post(
   '/sign-out',
   isAuthenticated,
-  handleError(accessValidation.signOut),
-  handleError(accessController.signOut),
+  accessValidation.signOut,
+  accessController.signOut,
 );
 router.post(
   '/refresh-token',
-  handleError(accessValidation.refressToken),
-  handleError(accessController.refressToken),
+  accessValidation.refressToken,
+  accessController.refressToken,
 );
 router.post(
   '/reset-password',
-  handleError(accessValidation.resetPassword),
-  handleError(accessController.resetPassword),
+  accessValidation.resetPassword,
+  accessController.resetPassword,
 );
 router.post(
   '/verify-reset-password',
-  handleError(accessValidation.verifySignUpToken),
-  handleError(accessController.verifyResetPassword),
+  accessValidation.verifySignUpToken,
+  accessController.verifyResetPassword,
 );
 router.post(
   '/change-password',
   isAuthenticated,
-  handleError(accessValidation.changePassword),
-  handleError(accessController.changePassword),
+  accessValidation.changePassword,
+  accessController.changePassword,
 );
 
 export default router;

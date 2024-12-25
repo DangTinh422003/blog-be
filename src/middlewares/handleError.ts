@@ -1,9 +1,12 @@
-import { type NextFunction, type Request, type Response } from 'express';
+import {
+  type NextFunction,
+  type Request,
+  type Response,
+  type Router,
+} from 'express';
 
-export const handleError = (
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<void> | void,
-) => {
+export const handleError = (router: Router) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(router(req, res, next)).catch(next);
   };
 };

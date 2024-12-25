@@ -5,9 +5,13 @@ import { PostService } from '@/services/post.controller';
 const postService = new PostService();
 
 export default class PostController {
-  async getPosts(req: Request, res: Response, next: NextFunction) {
+  async findAllPost(req: Request, res: Response, next: NextFunction) {
     const queryOption = req.post?.validatedQuery || {};
-    res.send(await postService.getPosts(queryOption));
+    res.send(await postService.findAllPost(queryOption));
+  }
+
+  findById(req: Request, res: Response, next: NextFunction) {
+    res.send('oke');
   }
 
   deletePost(req: Request, res: Response, next: NextFunction) {}
@@ -15,6 +19,4 @@ export default class PostController {
   updatePost(req: Request, res: Response, next: NextFunction) {}
 
   createPost(req: Request, res: Response, next: NextFunction) {}
-
-  findPost(req: Request, res: Response, next: NextFunction) {}
 }
