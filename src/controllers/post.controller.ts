@@ -16,7 +16,12 @@ export default class PostController {
     res.send(await postService.findPost(postId));
   }
 
-  deletePost(req: Request, res: Response, next: NextFunction) {}
+  async deletePost(req: Request, res: Response, next: NextFunction) {
+    const postId: string = req.params.id;
+    const userId: string = req.jwtDecoded!._id;
+
+    res.send(await postService.deletePost(userId, postId));
+  }
 
   updatePost(req: Request, res: Response, next: NextFunction) {}
 
