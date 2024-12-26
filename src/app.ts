@@ -3,7 +3,7 @@ import '@/dbs/init.mongodb';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express from 'express';
+import express, { type Express } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
@@ -12,7 +12,7 @@ import ErrorHandling from '@/middlewares/errorHandling';
 import router from '@/routes';
 
 class Server {
-  app = express();
+  app: Express = express();
 
   constructor() {
     this.app = express();

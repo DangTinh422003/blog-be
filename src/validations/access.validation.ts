@@ -1,124 +1,57 @@
-import { type NextFunction, type Request, type Response } from 'express';
 import { z } from 'zod';
 
-import { BadRequestError } from '@/core/error.response';
+import { TOKEN } from '@/constants';
 
-export default class AccessValidation {
-  signUp(req: Request, res: Response, next: NextFunction) {
-    const signUpSchema = z.object({
-      email: z.string().email().min(1, 'Email is required'),
-    });
+const accessValidation = {
+  signUpSchema: {
+    body: z.object({
+      email: z.string().email().min(1, 'Missing Email'),
+    }),
+  },
 
-    const check = signUpSchema.safeParse({ email: req.body.email });
-    if (check.error) {
-      throw new BadRequestError('Invalid email');
-    }
-
-    next();
-  }
-
-  signIn(req: Request, res: Response, next: NextFunction) {
-    const signInSchema = z.object({
+  signInSchema: {
+    body: z.object({
       email: z.string().email(),
       password: z
         .string()
         .min(1, 'Password is required')
-        .max(100, 'Password is too long'),
-    });
+        .max(100, 'Password is too long, max 100 characters'),
+    }),
+  },
 
-    const check = signInSchema.safeParse({
-      email: req.body.email,
-      password: req.body.password,
-    });
+  signOutSchema: {
+    cookies: z.object({
+      [TOKEN.ACCESS_TOKEN]: z.string(),
+    }),
+  },
 
-    if (check.error) {
-      throw new BadRequestError('Invalid email or password');
-    }
+  verifySignUpTokenSchema: {
+    body: z.object({
+      [TOKEN.OTP_TOKEN]: z.string(),
+    }),
+  },
 
-    next();
-  }
+  refressTokenSchema: {
+    cookies: z.object({
+      [TOKEN.REFRESH_TOKEN]: z.string(),
+    }),
+  },
 
-  signOut(req: Request, res: Response, next: NextFunction) {
-    const verifyOtpSchema = z.object({
-      accessToken: z.string(),
-    });
-
-    const check = verifyOtpSchema.safeParse({
-      accessToken: req.cookies.accessToken,
-    });
-
-    if (check.error) {
-      throw new BadRequestError('Invalid token');
-    }
-
-    next();
-  }
-
-  verifySignUpToken(req: Request, res: Response, next: NextFunction) {
-    const verifyOtpSchema = z.object({
-      token: z.string().min(1, 'Token is required'),
-    });
-
-    const check = verifyOtpSchema.safeParse({ token: req.body.token });
-
-    if (check.error) {
-      throw new BadRequestError('Invalid token');
-    }
-
-    next();
-  }
-
-  refressToken(req: Request, res: Response, next: NextFunction) {
-    const refreshTokenSchema = z.object({
-      refressToken: z.string().min(1, 'Refress Token is required'),
-    });
-
-    const check = refreshTokenSchema.safeParse({
-      refressToken: req.cookies.refreshToken,
-    });
-
-    if (check.error) {
-      throw new BadRequestError('Invalid token');
-    }
-
-    next();
-  }
-
-  resetPassword(req: Request, res: Response, next: NextFunction) {
-    const signUpSchema = z.object({
+  resetPasswordSchema: {
+    body: z.object({
       email: z.string().email().min(1, 'Email is required'),
-    });
+    }),
+  },
 
-    const check = signUpSchema.safeParse({ email: req.body.email });
-    if (check.error) {
-      throw new BadRequestError('Invalid email');
-    }
-
-    next();
-  }
-
-  changePassword(req: Request, res: Response, next: NextFunction) {
-    const email: string = req.body.email;
-    const newPassword: string = req.body.newPassword;
-    const accessToken: string = req.cookies.accessToken;
-
-    if (!email || !accessToken) {
-      throw new BadRequestError();
-    }
-
-    const resetPasswordSchema = z.object({
+  changePasswordSchema: {
+    body: z.object({
       email: z.string().email().min(1, 'Email is required'),
-      newPassword: z
-        .string()
-        .min(1, 'Password is required')
-        .max(100, 'Password is too long'),
-    });
+      newPassword: z.string().min(1, 'Password is required').max(100, 'Password is too long'),
+    }),
+    cookies: z.object({
+      [TOKEN.ACCESS_TOKEN]: z.string(),
+    }),
+  },
+};
 
-    const check = resetPasswordSchema.safeParse({ email, newPassword });
-    if (check.error) {
-      throw new BadRequestError();
-    }
-
-    next();
-  }
-}
+export default accessValidation;

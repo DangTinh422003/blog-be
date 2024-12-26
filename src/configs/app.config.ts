@@ -26,21 +26,21 @@ const dev: Config = {
   },
 };
 
-const prod = {
+const prod: Config = {
   app: {
-    port: process.env.PROD_APP_PORT ?? 3000,
+    port: Number(process.env.PROD_APP_PORT) || 3000,
     host: process.env.PROD_APP_HOST ?? 'localhost',
   },
   db: {
-    dbUserName: process.env.MONGO_DB_USER_NAME,
-    dbPassword: process.env.MONGO_DB_PASSWORD,
-    dbName: process.env.MONGO_DB_NAME,
+    dbUserName: process.env.MONGO_DB_USER_NAME!,
+    dbPassword: process.env.MONGO_DB_PASSWORD!,
+    dbName: process.env.MONGO_DB_NAME!,
   },
 };
 
 type Env = 'dev' | 'prod';
 
-const configs: Record<Env, Config | typeof prod> = {
+const configs: Record<Env, Config> = {
   dev,
   prod,
 };

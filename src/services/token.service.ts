@@ -1,15 +1,7 @@
-import JWT, {
-  type JwtPayload,
-  type PrivateKey,
-  type Secret,
-} from 'jsonwebtoken';
+import JWT, { type JwtPayload, type PrivateKey, type Secret } from 'jsonwebtoken';
 
 export default class TokenService {
-  generateToken(
-    payload: JwtPayload,
-    privateKey: Secret | PrivateKey,
-    expiresIn: string,
-  ) {
+  generateToken(payload: JwtPayload, privateKey: Secret | PrivateKey, expiresIn: string) {
     return JWT.sign(payload, privateKey, { expiresIn, algorithm: 'HS256' });
   }
 
@@ -22,16 +14,8 @@ export default class TokenService {
     const refreshTokenExpiresIn = '7d';
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.generateToken(
-        payload,
-        process.env.ACCESS_TOKEN_PRIVATE_KEY!,
-        accessTokenExpiresIn,
-      ),
-      this.generateToken(
-        payload,
-        process.env.REFRESH_TOKEN_PRIVATE_KEY!,
-        refreshTokenExpiresIn,
-      ),
+      this.generateToken(payload, process.env.ACCESS_TOKEN_PRIVATE_KEY!, accessTokenExpiresIn),
+      this.generateToken(payload, process.env.REFRESH_TOKEN_PRIVATE_KEY!, refreshTokenExpiresIn),
     ]);
 
     return {

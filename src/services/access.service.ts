@@ -1,8 +1,10 @@
-import bcrypt from 'bcrypt';
+// eslint-disable-next-line simple-import-sort/imports
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 import { type JwtPayload } from 'jsonwebtoken';
-import type Mail from 'nodemailer/lib/mailer';
 
+import { OTP_EXPIRY_TIME } from '@/constants';
+import { EMAIL_KEYS } from '@/constants/email.constant';
 import {
   BadRequestError,
   ForbiddenError,
@@ -10,14 +12,14 @@ import {
   NotFoundError,
 } from '@/core/error.response';
 import { CreatedResponse, OkResponse } from '@/core/success.response';
+import resetPasswordTemplate from '@/email-templates/resetpassword.template';
+import welcomeTemplate from '@/email-templates/welcome.template';
 import otpModel from '@/models/otp.model';
 import userModel from '@/models/user.model';
 import { UserRepository } from '@/repository/user.repo';
 import EmailService from '@/services/email.service';
 import TokenService from '@/services/token.service';
 import TokenStorageService from '@/services/tokenStorage.service';
-import resetPasswordTemplate from '@/templates/resetpassword.template';
-import welcomeTemplate from '@/templates/welcome.template';
 import { isValidEmail } from '@/utils/isValidEmail.util';
 import { removePasswordField } from '@/utils/removePasswordField.util';
 
@@ -39,7 +41,7 @@ export default class AccessService {
     const tokenVerify = tokenService.generateToken(
       { email },
       process.env.SIGN_UP_TOKEN_PRIVATE_KEY!,
-      '60s',
+      OTP_EXPIRY_TIME,
     );
 
     await otpModel.create({
@@ -47,37 +49,19 @@ export default class AccessService {
       otp: tokenVerify,
     });
 
-    const replacedEmailTemplate = emailService.replacedEmailTemplate(
-      welcomeTemplate(),
-      [
-        {
-          key: '{{email}}',
-          value: email,
-        },
-        {
-          key: '{{token}}',
-          value: tokenVerify,
-        },
-      ],
-    );
+    const replacedEmailTemplate = emailService.replacedEmailTemplate(welcomeTemplate(), [
+      {
+        key: EMAIL_KEYS.EMAIL,
+        value: email,
+      },
+      {
+        key: EMAIL_KEYS.TOKEN,
+        value: tokenVerify,
+      },
+    ]);
 
     try {
-      const transporter = emailService.initTransporter('smtp.gmail.com', {
-        user: process.env.EMAIL_SERVICE_AUTH_USER!,
-        pass: process.env.EMAIL_SERVICE_AUTH_PASS!,
-      });
-
-      const mailOptions: Mail.Options = {
-        from: {
-          name: 'Dev Blog',
-          address: process.env.EMAIL_SERVICE_AUTH_USER!,
-        },
-        to: email,
-        subject: 'Welcome to DevBlog, Please verify your email',
-        html: replacedEmailTemplate,
-      };
-
-      await emailService.sendMail(transporter, mailOptions);
+      await emailService.sendMail(email, '[BLOG.DEV] Sign Up Successfully!', replacedEmailTemplate);
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
@@ -86,47 +70,54 @@ export default class AccessService {
   }
 
   async verifySignUpToken(token: string) {
-    const decoded: JwtPayload = tokenService.verifyToken(
-      token,
-      process.env.SIGN_UP_TOKEN_PRIVATE_KEY!,
-    );
+    try {
+      const decoded: JwtPayload = tokenService.verifyToken(
+        token,
+        process.env.SIGN_UP_TOKEN_PRIVATE_KEY!,
+      );
 
-    const email: string = decoded.email;
-    if (!email) throw new BadRequestError('Invalid token');
+      const email: string = decoded.email;
+      if (!email) throw new BadRequestError('Invalid token');
 
-    const SALT = 10;
-    const hashedPassword = await bcrypt.hash(email, SALT);
+      const SALT = 10;
+      const hashedPassword = await bcrypt.hash(email, SALT);
 
-    const { password, ...newUser } = (
-      await userModel.create({ email, password: hashedPassword })
-    ).toObject();
+      const { password, ...newUser } = (
+        await userModel.create({ email, password: hashedPassword })
+      ).toObject();
 
-    const { accessToken, refreshToken } =
-      await tokenService.generateTokens(newUser);
+      const { accessToken, refreshToken } = await tokenService.generateTokens(newUser);
 
-    const tokenStorage = await tokenStorageService.createTokenStorage(
-      newUser._id.toString(),
-      refreshToken,
-    );
-
-    if (!tokenStorage) {
-      throw new InternalServerError();
-    }
-
-    return new CreatedResponse('Created', {
-      user: newUser,
-      tokens: {
-        accessToken,
+      const tokenStorage = await tokenStorageService.createTokenStorage(
+        newUser._id.toString(),
         refreshToken,
-      },
-    });
+      );
+
+      if (!tokenStorage) {
+        throw new InternalServerError();
+      }
+
+      return new CreatedResponse('Created', {
+        user: newUser,
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('jwt expired')) {
+          throw new BadRequestError('Token expired!');
+        }
+      }
+    }
   }
 
   async signIn(email: string, password: string) {
     const userFound = await UserRepository.findByEmail(email);
 
     if (!userFound) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError();
     }
 
     const isMatchPassword = await bcrypt.compare(password, userFound.password);
@@ -136,13 +127,9 @@ export default class AccessService {
 
     const user = removePasswordField(userFound);
 
-    const { accessToken, refreshToken } =
-      await tokenService.generateTokens(user);
+    const { accessToken, refreshToken } = await tokenService.generateTokens(user);
 
-    await tokenStorageService.createTokenStorage(
-      user._id.toString(),
-      refreshToken,
-    );
+    await tokenStorageService.createTokenStorage(user._id.toString(), refreshToken);
 
     return new OkResponse('Login successfully', {
       user,
@@ -164,15 +151,14 @@ export default class AccessService {
     );
 
     if (!deletedTokenStorage) {
-      throw new NotFoundError('Token storage not found');
+      throw new NotFoundError();
     }
 
     return new OkResponse('Logout successfully');
   }
 
   async refressToken(refreshToken: string) {
-    const tokenStorage =
-      await tokenStorageService.findByRefreshTokenUsed(refreshToken);
+    const tokenStorage = await tokenStorageService.findByRefreshTokenUsed(refreshToken);
 
     if (tokenStorage) {
       const userDecoded = tokenService.verifyToken(
@@ -181,11 +167,10 @@ export default class AccessService {
       );
 
       await tokenStorageService.deleteTokenStorage(userDecoded._id as string);
-      throw new ForbiddenError('Token has been used, please login again');
+      throw new ForbiddenError();
     }
 
-    const tokenHolder =
-      await tokenStorageService.findByRefreshToken(refreshToken);
+    const tokenHolder = await tokenStorageService.findByRefreshToken(refreshToken);
 
     if (!tokenHolder) {
       throw new NotFoundError('Token not found');
@@ -235,7 +220,7 @@ export default class AccessService {
     const tokenVerify = tokenService.generateToken(
       { email },
       process.env.RESET_PASSWORD_TOKEN_PRIVATE_KEY!,
-      '60s',
+      OTP_EXPIRY_TIME,
     );
 
     await otpModel.create({
@@ -243,37 +228,19 @@ export default class AccessService {
       otp: tokenVerify,
     });
 
-    const replacedEmailTemplate = emailService.replacedEmailTemplate(
-      welcomeTemplate(),
-      [
-        {
-          key: '{{email}}',
-          value: email,
-        },
-        {
-          key: '{{token}}',
-          value: tokenVerify,
-        },
-      ],
-    );
+    const replacedEmailTemplate = emailService.replacedEmailTemplate(welcomeTemplate(), [
+      {
+        key: EMAIL_KEYS.EMAIL,
+        value: email,
+      },
+      {
+        key: EMAIL_KEYS.TOKEN,
+        value: tokenVerify,
+      },
+    ]);
 
     try {
-      const transporter = emailService.initTransporter('smtp.gmail.com', {
-        user: process.env.EMAIL_SERVICE_AUTH_USER!,
-        pass: process.env.EMAIL_SERVICE_AUTH_PASS!,
-      });
-
-      const mailOptions: Mail.Options = {
-        from: {
-          name: 'Dev Blog',
-          address: process.env.EMAIL_SERVICE_AUTH_USER!,
-        },
-        to: email,
-        subject: 'Reset your password, Please verify your email',
-        html: replacedEmailTemplate,
-      };
-
-      await emailService.sendMail(transporter, mailOptions);
+      await emailService.sendMail(email, '[BLOG.DEV] Reset Your Password!', replacedEmailTemplate);
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
@@ -282,63 +249,49 @@ export default class AccessService {
   }
 
   async verifyResetPasswordToken(token: string) {
-    const decoded: JwtPayload = tokenService.verifyToken(
-      token,
-      process.env.RESET_PASSWORD_TOKEN_PRIVATE_KEY!,
-    );
+    try {
+      const decoded: JwtPayload = tokenService.verifyToken(
+        token,
+        process.env.RESET_PASSWORD_TOKEN_PRIVATE_KEY!,
+      );
 
-    const email: string = decoded.email;
-    if (!email) throw new BadRequestError('Invalid token');
+      const email: string = decoded.email;
+      if (!email) throw new BadRequestError('Invalid token');
 
-    const userHolder = await UserRepository.findByEmail(email);
-    if (!userHolder) {
-      throw new NotFoundError('User not found');
-    }
+      const userHolder = await UserRepository.findByEmail(email);
+      if (!userHolder) {
+        throw new NotFoundError('User not found');
+      }
 
-    const randomPassword = crypto.randomBytes(8).toString('hex');
+      const randomPassword = crypto.randomBytes(8).toString('hex');
 
-    const SALT = 10;
-    const hashedPassword = await bcrypt.hash(randomPassword, SALT);
+      const SALT = 10;
+      const hashedPassword = await bcrypt.hash(randomPassword, SALT);
 
-    await UserRepository.updateById(userHolder._id.toString(), {
-      password: hashedPassword,
-    });
+      await UserRepository.updateById(userHolder._id.toString(), {
+        password: hashedPassword,
+      });
 
-    const replacedEmailTemplate = emailService.replacedEmailTemplate(
-      resetPasswordTemplate(),
-      [
+      const replacedEmailTemplate = emailService.replacedEmailTemplate(resetPasswordTemplate(), [
         {
-          key: '{{email}}',
+          key: EMAIL_KEYS.EMAIL,
           value: email,
         },
         {
-          key: '{{password}}',
+          key: EMAIL_KEYS.PASSWORD,
           value: randomPassword,
         },
-      ],
-    );
+      ]);
 
-    try {
-      const transporter = emailService.initTransporter('smtp.gmail.com', {
-        user: process.env.EMAIL_SERVICE_AUTH_USER!,
-        pass: process.env.EMAIL_SERVICE_AUTH_PASS!,
-      });
-
-      const mailOptions: Mail.Options = {
-        from: {
-          name: 'Dev Blog',
-          address: process.env.EMAIL_SERVICE_AUTH_USER!,
-        },
-        to: email,
-        subject: 'Reset password successfully',
-        html: replacedEmailTemplate,
-      };
-
-      await emailService.sendMail(transporter, mailOptions);
+      await emailService.sendMail(email, '[BLOG.DEV] Reset Your Password!', replacedEmailTemplate);
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
-      throw new InternalServerError();
+      if (error instanceof Error) {
+        if (error.message.includes('jwt expired')) {
+          throw new BadRequestError('Token expired!');
+        }
+      }
     }
   }
 

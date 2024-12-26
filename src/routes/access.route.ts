@@ -3,53 +3,60 @@ import express from 'express';
 import AccessController from '@/controllers/access.controller';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { isAuthenticated } from '@/middlewares/isAuthenticated';
-import AccessValidation from '@/validations/access.validation';
+import { validationRequest } from '@/middlewares/validationRequest';
+import accessValidation from '@/validations/access.validation';
 
 const accessController = new AccessController();
-const accessValidation = new AccessValidation();
 
 const router = express.Router();
 
 router.post(
   '/sign-up',
-  asyncHandler(accessValidation.signUp),
+  validationRequest({ ...accessValidation.signUpSchema }),
   asyncHandler(accessController.signUp),
 );
+
 router.post(
   '/verify-otp',
-  asyncHandler(accessValidation.verifySignUpToken),
+  validationRequest({ ...accessValidation.verifySignUpTokenSchema }),
   asyncHandler(accessController.verifySignUpToken),
 );
+
 router.post(
   '/sign-in',
-  asyncHandler(accessValidation.signIn),
+  validationRequest({ ...accessValidation.signInSchema }),
   asyncHandler(accessController.signIn),
 );
+
 router.post(
   '/sign-out',
+  validationRequest({ ...accessValidation.signOutSchema }),
   isAuthenticated,
-  asyncHandler(accessValidation.signOut),
   asyncHandler(accessController.signOut),
 );
+
 router.post(
   '/refresh-token',
-  asyncHandler(accessValidation.refressToken),
+  validationRequest({ ...accessValidation.refressTokenSchema }),
   asyncHandler(accessController.refressToken),
 );
+
 router.post(
   '/reset-password',
-  asyncHandler(accessValidation.resetPassword),
+  validationRequest({ ...accessValidation.resetPasswordSchema }),
   asyncHandler(accessController.resetPassword),
 );
+
 router.post(
   '/verify-reset-password',
-  asyncHandler(accessValidation.verifySignUpToken),
+  validationRequest({ ...accessValidation.verifySignUpTokenSchema }),
   asyncHandler(accessController.verifyResetPassword),
 );
+
 router.post(
   '/change-password',
+  validationRequest({ ...accessValidation.changePasswordSchema }),
   isAuthenticated,
-  asyncHandler(accessValidation.changePassword),
   asyncHandler(accessController.changePassword),
 );
 

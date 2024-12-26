@@ -1,3 +1,5 @@
+import { EMAIL_KEYS } from '@/constants/email.constant';
+
 const resetPasswordTemplate = () => {
   return `
     <!doctype html>
@@ -97,13 +99,13 @@ const resetPasswordTemplate = () => {
         <td class="content">
           <h1>Reset Password</h1>
           <p>
-            Hello {{email}}!<br />
+            Hello ${EMAIL_KEYS.EMAIL}!<br />
             Thank you for using DevBlog. We're really happy to have you! Click
             the link below to reset your password:
           </p>
           <div class="button">
             <p>
-              New Password : {{password}}
+              New Password : ${EMAIL_KEYS.PASSWORD}
             </p>
           </div>
         </td>

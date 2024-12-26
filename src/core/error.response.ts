@@ -1,4 +1,4 @@
-import { getReasonPhrase, StatusCodes } from 'http-status-codes';
+import { getReasonPhrase, ReasonPhrases, StatusCodes } from 'http-status-codes';
 
 export class CustomError extends Error {
   status: number;
@@ -47,9 +47,7 @@ export class ForbiddenError extends ErrorResponse {
 }
 
 export class InternalServerError extends ErrorResponse {
-  constructor(
-    message: string = getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR),
-  ) {
+  constructor(message: string = getReasonPhrase(StatusCodes.INTERNAL_SERVER_ERROR)) {
     super(message, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 }

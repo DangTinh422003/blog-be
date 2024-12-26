@@ -1,6 +1,8 @@
 {
   "watch": ["src", ".env"],
-  "ext": ".ts,.js",
+  "ext": ".ts,.js,json",
   "ignore": [],
-  "exec": "tsx ./src/server.ts"
+  "exec": "tsx ./src/server.ts",
+  "delay": "2500",
+  "restartable": "rs"
 }

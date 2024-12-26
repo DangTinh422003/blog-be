@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import ms from 'ms';
 
+import { TOKEN } from '@/constants';
 import AccessService from '@/services/access.service';
 
 const accessService = new AccessService();
@@ -12,19 +13,18 @@ export default class AccessController {
   }
 
   async verifySignUpToken(req: Request, res: Response, next: NextFunction) {
-    const token: string = req.body.token;
+    const token: string = req.body[TOKEN.OTP_TOKEN];
     const verifyRes = await accessService.verifySignUpToken(token);
-
     const { accessToken, refreshToken } = verifyRes.data!.tokens;
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie(TOKEN.ACCESS_TOKEN, accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       maxAge: ms('7 days'),
     });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie(TOKEN.REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
@@ -41,14 +41,14 @@ export default class AccessController {
     const signInRes = await accessService.signIn(email, password);
     const { accessToken, refreshToken } = signInRes.data!.tokens;
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie(TOKEN.ACCESS_TOKEN, accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       maxAge: ms('7 days'),
     });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie(TOKEN.REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
@@ -59,29 +59,29 @@ export default class AccessController {
   }
 
   async signOut(req: Request, res: Response, next: NextFunction) {
-    const accessToken: string = req.cookies.accessToken;
+    const accessToken: string = req.cookies[TOKEN.ACCESS_TOKEN];
     const signOutRes = await accessService.signOut(accessToken);
 
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    res.clearCookie(TOKEN.ACCESS_TOKEN);
+    res.clearCookie(TOKEN.REFRESH_TOKEN);
 
     res.send({ ...signOutRes });
   }
 
   async refressToken(req: Request, res: Response, next: NextFunction) {
-    const refreshTokenReq: string = req.cookies.refreshToken;
+    const refreshTokenReq: string = req.cookies[TOKEN.REFRESH_TOKEN];
     const refressTokenRes = await accessService.refressToken(refreshTokenReq);
 
     const { accessToken, refreshToken } = refressTokenRes.data!.tokens;
 
-    res.cookie('accessToken', accessToken, {
+    res.cookie(TOKEN.ACCESS_TOKEN, accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       maxAge: ms('7 days'),
     });
 
-    res.cookie('refreshToken', refreshToken, {
+    res.cookie(TOKEN.REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
@@ -97,14 +97,13 @@ export default class AccessController {
   }
 
   async verifyResetPassword(req: Request, res: Response, next: NextFunction) {
-    const token: string = req.body.token;
+    const token: string = req.body[TOKEN.OTP_TOKEN];
     res.send(await accessService.verifyResetPasswordToken(token));
   }
 
   async changePassword(req: Request, res: Response, next: NextFunction) {
     const email: string = req.body.email;
     const newPassword: string = req.body.newPassword;
-
     res.send(await accessService.changePassword(email, newPassword));
   }
 }
