@@ -133,7 +133,7 @@ importers:
         specifier: ^1.10.0
         version: 1.10.0
       nodemon:
-        specifier: ^3.1.7
+        specifier: ^3.1.9
         version: 3.1.9
       prettier:
         specifier: ^3.4.2

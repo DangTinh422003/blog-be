@@ -1,58 +1,24 @@
-import { type NextFunction, type Request, type Response } from 'express';
-import { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 
-import { BadRequestError } from '@/core/error.response';
+const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
-export default class PostValidation {
-  findAllPost(req: Request, res: Response, next: NextFunction) {
-    const optionQuerySchema = z.object({
-      page: z.coerce.number().int().min(1).optional(),
-      limit: z.coerce.number().int().min(1).optional(),
-      order: z.enum(['asc', 'desc']).optional(),
-    });
+const postValidation = {
+  deletePostSchema: {
+    params: z.object({
+      id: z.string().refine(isValidObjectId, {
+        message: 'Invalid ObjectId format',
+      }),
+    }),
+  },
 
-    const optionQuery = optionQuerySchema.safeParse(req.query);
+  findByIdSchema: {
+    params: z.object({
+      id: z.string().refine(isValidObjectId, {
+        message: 'Invalid ObjectId format',
+      }),
+    }),
+  },
+};
 
-    if (!optionQuery.success) {
-      throw new BadRequestError('Invalid query');
-    }
-
-    Object.assign(req, { post: { validatedQuery: optionQuery.data } });
-    next();
-  }
-
-  deletePost(req: Request, res: Response, next: NextFunction) {
-    const id: string = req.params.id;
-    const idSchema = z.string();
-
-    const idParsed = idSchema.safeParse(id);
-
-    if (idParsed.error || !Types.ObjectId.isValid(id)) {
-      throw new BadRequestError('Invalid id');
-    }
-
-    next();
-  }
-
-  updatePost(req: Request, res: Response, next: NextFunction) {
-    next();
-  }
-
-  createPost(req: Request, res: Response, next: NextFunction) {
-    next();
-  }
-
-  findById(req: Request, res: Response, next: NextFunction) {
-    const id: string = req.params.id;
-    const idSchema = z.string();
-
-    const idParsed = idSchema.safeParse(id);
-
-    if (idParsed.error || !Types.ObjectId.isValid(id)) {
-      throw new BadRequestError('Invalid id');
-    }
-
-    next();
-  }
-}
+export default postValidation;

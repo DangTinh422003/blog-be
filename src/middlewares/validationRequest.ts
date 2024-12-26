@@ -7,35 +7,23 @@ interface ValidationSchemas {
   body?: ZodTypeAny;
   query?: ZodTypeAny;
   params?: ZodTypeAny;
+  cookies?: ZodTypeAny;
 }
 
-export const validationRequest = ({ body, query, params }: ValidationSchemas = {}) => {
+export const validationRequest = ({ body, query, params, cookies }: ValidationSchemas = {}) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       if (body) Object.assign(req.body, body.parse(req.body));
       if (query) Object.assign(req.query, query.parse(req.query));
       if (params) Object.assign(req.params, params.parse(req.params));
+      if (cookies) Object.assign(req.cookies, cookies.parse(req.cookies));
+
+      next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMsgs: Array<{ field: string; message: string }> = [];
-
-        error.issues.forEach((issue) => {
-          const field = issue.path.join('.');
-          const existingError = errorMsgs.find((error) => error.field === field);
-
-          if (existingError) {
-            existingError.message += `\n ${issue.message}`;
-          } else {
-            errorMsgs.push({
-              field,
-              message: issue.message,
-            });
-          }
-        });
-        throw new BadRequestError(error.message);
+        throw new BadRequestError();
       }
+      throw new InternalServerError();
     }
-
-    throw new InternalServerError();
   };
 };
