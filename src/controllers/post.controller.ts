@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from 'express';
 
-import { PostService } from '@/services/post.controller';
+import { PostService } from '@/services/post.service';
 
 const postService = new PostService();
 
@@ -22,11 +22,13 @@ export default class PostController {
     res.send(await postService.deletePost(userId, postId));
   }
 
-  updatePost(req: Request, res: Response, next: NextFunction) {
-    res.send('oke');
+  async updatePost(req: Request, res: Response, next: NextFunction) {
+    const { id, title, content, thumbnail } = req.body;
+    res.send(await postService.updatePost({ postId: id, title, content, thumbnail }));
   }
 
-  createPost(req: Request, res: Response, next: NextFunction) {
-    res.send('oke');
+  async createPost(req: Request, res: Response, next: NextFunction) {
+    const { author, thumbnail, title, content } = req.body;
+    res.send(await postService.createPost({ author, thumbnail, title, content }));
   }
 }

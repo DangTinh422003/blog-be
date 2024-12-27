@@ -20,7 +20,11 @@ router.get(
   asyncHandler(postController.findById),
 );
 
-router.get('/create', asyncHandler(postController.createPost));
+router.post(
+  '/create',
+  validationRequest({ ...postValidation.createPostSchema }),
+  asyncHandler(postController.createPost),
+);
 
 router.delete(
   '/delete/:id',
@@ -28,6 +32,10 @@ router.delete(
   asyncHandler(postController.deletePost),
 );
 
-router.patch('/update', asyncHandler(postController.updatePost));
+router.patch(
+  '/update',
+  validationRequest({ ...postValidation.updatePostSchema }),
+  asyncHandler(postController.updatePost),
+);
 
 export default router;

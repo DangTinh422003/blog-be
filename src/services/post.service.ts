@@ -3,8 +3,8 @@ import { type PaginateOptions, Types } from 'mongoose';
 import { z } from 'zod';
 
 import { BadRequestError, NotFoundError } from '@/core/error.response';
-import { OkResponse } from '@/core/success.response';
-import postModel from '@/models/post.model';
+import { CreatedResponse, OkResponse } from '@/core/success.response';
+import postModel, { type Post } from '@/models/post.model';
 import PostRepository from '@/repository/post.repo';
 
 export type OptionQuery = {
@@ -30,8 +30,11 @@ export class PostService {
     const options: PaginateOptions = {
       page: optionQuery.data.page,
       limit: optionQuery.data.limit,
-      sort: { createdAt: optionQuery.data.order },
-      populate: 'author',
+      sort: { createdAt: optionQuery.data.order || 'desc' },
+      populate: {
+        path: 'author',
+        select: '-password',
+      },
     };
 
     const posts = await postModel.paginate({}, options);
@@ -53,12 +56,41 @@ export class PostService {
     return new OkResponse('Successfully!');
   }
 
-  updatePost() {}
+  async updatePost({
+    postId,
+    content,
+    thumbnail,
+    title,
+  }: {
+    postId: string;
+    thumbnail: string;
+    title: string;
+    content: string;
+  }) {
+    const postHolder = await PostRepository.findById(postId);
 
-  createPost() {}
+    if (!postHolder) {
+      throw new NotFoundError('Post not found');
+    }
+
+    const post = await postModel
+      .findByIdAndUpdate(new Types.ObjectId(postId), { thumbnail, title, content }, { new: true })
+      .populate('author', '-password')
+      .lean();
+
+    return new OkResponse('Successfully!', { post });
+  }
+
+  async createPost(post: Partial<Post>) {
+    const _post = await PostRepository.createPost(post);
+    return new CreatedResponse('Successfully!', { post: _post });
+  }
 
   async findPost(postId: string) {
-    const post = await postModel.findById(new Types.ObjectId(postId)).populate('author').lean();
+    const post = await postModel
+      .findById(new Types.ObjectId(postId))
+      .populate('author', '-password')
+      .lean();
 
     if (!post) {
       throw new NotFoundError('Post not found');

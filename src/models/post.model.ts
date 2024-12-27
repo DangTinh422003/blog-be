@@ -1,4 +1,10 @@
-import { type InferSchemaType, model, type PaginateModel, Schema } from 'mongoose';
+import {
+  type InferSchemaType,
+  model,
+  type PaginateModel,
+  Schema,
+  type UpdateQuery,
+} from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 import slugify from 'slugify';
 
@@ -16,13 +22,13 @@ const postSchema = new Schema(
     },
     slug: {
       type: String,
-      required: true,
       unique: true,
       index: true,
     },
     thumbnail: {
       type: String,
       default: '',
+      required: true,
     },
     title: {
       type: String,
@@ -38,10 +44,6 @@ const postSchema = new Schema(
       type: Date,
       default: Date.now,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: true,
@@ -50,10 +52,32 @@ const postSchema = new Schema(
 );
 
 postSchema.pre('save', function (next) {
-  this.slug = slugify(this.title, {
-    lower: true,
-    trim: true,
-  });
+  if (this.isModified('title')) {
+    this.slug = slugify(this.title, {
+      lower: true,
+      trim: true,
+    });
+  }
+  next();
+});
+
+postSchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate() as UpdateQuery<{ title?: string; $set?: { title?: string } }>;
+
+  const title: string = update?.title || update?.$set?.title;
+  if (title) {
+    if (update.$set) {
+      update.$set.slug = slugify(title, {
+        lower: true,
+        trim: true,
+      });
+    } else {
+      update.slug = slugify(title, {
+        lower: true,
+        trim: true,
+      });
+    }
+  }
   next();
 });
 
