@@ -10,8 +10,8 @@ import slugify from 'slugify';
 
 import { DOCUMENT_NAME as USER_DOCUMENT_NAME } from '@/models/user.model';
 
-const DOCUMENT_NAME = 'Post';
-const COLLECTION_NAME = 'Posts';
+export const DOCUMENT_NAME = 'Post';
+export const COLLECTION_NAME = 'Posts';
 
 const postSchema = new Schema(
   {

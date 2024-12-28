@@ -15,7 +15,8 @@ export default class AccessController {
   async verifySignUpToken(req: Request, res: Response, next: NextFunction) {
     const token: string = req.body[TOKEN.OTP_TOKEN];
     const verifyRes = await accessService.verifySignUpToken(token);
-    const { accessToken, refreshToken } = verifyRes.data!.tokens;
+    const data = verifyRes!.data;
+    const { accessToken, refreshToken } = data!.tokens;
 
     res.cookie(TOKEN.ACCESS_TOKEN, accessToken, {
       httpOnly: true,
