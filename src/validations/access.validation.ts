@@ -46,7 +46,10 @@ const accessValidation = {
   changePasswordSchema: {
     body: z.object({
       email: z.string().email().min(1, 'Email is required'),
-      newPassword: z.string().min(1, 'Password is required').max(100, 'Password is too long'),
+      newPassword: z
+        .string()
+        .min(1, 'Password is required')
+        .max(100, 'Password is too long'),
     }),
     cookies: z.object({
       [TOKEN.ACCESS_TOKEN]: z.string(),

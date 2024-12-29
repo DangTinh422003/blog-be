@@ -49,19 +49,26 @@ export default class AccessService {
       otp: tokenVerify,
     });
 
-    const replacedEmailTemplate = emailService.replacedEmailTemplate(welcomeTemplate(), [
-      {
-        key: EMAIL_KEYS.EMAIL,
-        value: email,
-      },
-      {
-        key: EMAIL_KEYS.TOKEN,
-        value: tokenVerify,
-      },
-    ]);
+    const replacedEmailTemplate = emailService.replacedEmailTemplate(
+      welcomeTemplate(),
+      [
+        {
+          key: EMAIL_KEYS.EMAIL,
+          value: email,
+        },
+        {
+          key: EMAIL_KEYS.TOKEN,
+          value: tokenVerify,
+        },
+      ],
+    );
 
     try {
-      await emailService.sendMail(email, '[BLOG.DEV] Sign Up Successfully!', replacedEmailTemplate);
+      await emailService.sendMail(
+        email,
+        '[BLOG.DEV] Sign Up Successfully!',
+        replacedEmailTemplate,
+      );
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
@@ -86,7 +93,8 @@ export default class AccessService {
         await userModel.create({ email, password: hashedPassword })
       ).toObject();
 
-      const { accessToken, refreshToken } = await tokenService.generateTokens(newUser);
+      const { accessToken, refreshToken } =
+        await tokenService.generateTokens(newUser);
 
       const tokenStorage = await tokenStorageService.createTokenStorage(
         newUser._id.toString(),
@@ -127,9 +135,13 @@ export default class AccessService {
 
     const user = removePasswordField(userFound);
 
-    const { accessToken, refreshToken } = await tokenService.generateTokens(user);
+    const { accessToken, refreshToken } =
+      await tokenService.generateTokens(user);
 
-    await tokenStorageService.createTokenStorage(user._id.toString(), refreshToken);
+    await tokenStorageService.createTokenStorage(
+      user._id.toString(),
+      refreshToken,
+    );
 
     return new OkResponse('Login successfully', {
       user,
@@ -158,7 +170,8 @@ export default class AccessService {
   }
 
   async refressToken(refreshToken: string) {
-    const tokenStorage = await tokenStorageService.findByRefreshTokenUsed(refreshToken);
+    const tokenStorage =
+      await tokenStorageService.findByRefreshTokenUsed(refreshToken);
 
     if (tokenStorage) {
       const userDecoded = tokenService.verifyToken(
@@ -170,7 +183,8 @@ export default class AccessService {
       throw new ForbiddenError();
     }
 
-    const tokenHolder = await tokenStorageService.findByRefreshToken(refreshToken);
+    const tokenHolder =
+      await tokenStorageService.findByRefreshToken(refreshToken);
 
     if (!tokenHolder) {
       throw new NotFoundError('Token not found');
@@ -228,19 +242,26 @@ export default class AccessService {
       otp: tokenVerify,
     });
 
-    const replacedEmailTemplate = emailService.replacedEmailTemplate(welcomeTemplate(), [
-      {
-        key: EMAIL_KEYS.EMAIL,
-        value: email,
-      },
-      {
-        key: EMAIL_KEYS.TOKEN,
-        value: tokenVerify,
-      },
-    ]);
+    const replacedEmailTemplate = emailService.replacedEmailTemplate(
+      welcomeTemplate(),
+      [
+        {
+          key: EMAIL_KEYS.EMAIL,
+          value: email,
+        },
+        {
+          key: EMAIL_KEYS.TOKEN,
+          value: tokenVerify,
+        },
+      ],
+    );
 
     try {
-      await emailService.sendMail(email, '[BLOG.DEV] Reset Your Password!', replacedEmailTemplate);
+      await emailService.sendMail(
+        email,
+        '[BLOG.DEV] Reset Your Password!',
+        replacedEmailTemplate,
+      );
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
@@ -272,18 +293,25 @@ export default class AccessService {
         password: hashedPassword,
       });
 
-      const replacedEmailTemplate = emailService.replacedEmailTemplate(resetPasswordTemplate(), [
-        {
-          key: EMAIL_KEYS.EMAIL,
-          value: email,
-        },
-        {
-          key: EMAIL_KEYS.PASSWORD,
-          value: randomPassword,
-        },
-      ]);
+      const replacedEmailTemplate = emailService.replacedEmailTemplate(
+        resetPasswordTemplate(),
+        [
+          {
+            key: EMAIL_KEYS.EMAIL,
+            value: email,
+          },
+          {
+            key: EMAIL_KEYS.PASSWORD,
+            value: randomPassword,
+          },
+        ],
+      );
 
-      await emailService.sendMail(email, '[BLOG.DEV] Reset Your Password!', replacedEmailTemplate);
+      await emailService.sendMail(
+        email,
+        '[BLOG.DEV] Reset Your Password!',
+        replacedEmailTemplate,
+      );
 
       return new OkResponse('Email sent successfully');
     } catch (error) {
