@@ -1,5 +1,7 @@
 import { S3Client, type S3ClientConfig } from '@aws-sdk/client-s3';
 
+export const IMAGE_BASE_URL: string = process.env.IMAGE_BASE_URL || '';
+
 const s3Confiug: S3ClientConfig = {
   region: 'us-east-1',
   credentials: {
